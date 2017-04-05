@@ -27,38 +27,36 @@ def Index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def Login():
-	if request.method == 'POST':
-		username = request.form["username"]
-		password = request.form["password"]
-		return login(username,password)
-	else:
-		return "Parameters not found for login"
+    if request.method == 'POST':
+        username = request.form["username"]
+        password = request.form["password"]
+        return login(username, password)
+    else:
+        return jsonify(invalid_password=username)
+
 
 @app.route('/students/<rollno>/course_name')
 def Course_details(rollno):
-    valuebsr = main(rollno)
     # passing the rollno in a function and checking whether its valid or not
+    valuebsr = main(rollno)
     if main(rollno) is False:
         # returning json object of Error due to wrong roll no
         return jsonify(Error={'invalid rollno': 'invalid'})
     else:
-    	Course = Courses.query.all()
-    	return jsonify(Course_details=[i.serialize for i in Course])
+        Course = Courses.query.filter_by(
+            branch=valuebsr[0], semester=valuebsr[1])
+        return jsonify(Course_details=[i.serialize for i in Course])
 
 
 @app.route('/students/<rollno>/time_table')
 def Time_table(rollno):
-    valuebsr = main(rollno)
     # passing the rollno in a function and checking whether its valid or not
+    valuebsr = main(rollno)
     if main(rollno) is False:
         # returning json object of Error due to wrong roll no
         return jsonify(Error={'invalid rollno': 'invalid'})
     else:
-        Course = sessions.query(Courses).filter_by(semester=valuebsr[1],
-                                                   branch='valuebsr[0]').one()
-        Timetable = sessions.query(TimeTable).filter_by(course_rel=Course)
-
-        return jsonify(TimeTable=[i.serialize for i in Timetable])
+        return 'hello'
 
 
 @app.route('/students/<rollno>/attendence')
@@ -69,11 +67,15 @@ def Attendence(rollno):
 @app.route('/students/<rollno>/courses/course_code')
 def Course_code(rollno):
     # passing the rollno in a function and checking whether its valid or not
+    valuebsr = main(rollno)
     if main(rollno) is False:
         # returning json object of Error due to wrong roll no
         return jsonify(Error={'invalid rollno': 'invalid'})
     else:
-        Course = sessions.query(Courses).filter_by(semester=valuebsr[1])
+        # problem up here wait for it
+        Course = Courses.query.filter_by(semester=valuebsr[1],
+                                         branch=valuebsr[0]).with_entities(Courses.course_code)
+        return jsonify(Course=[i.serialize for i in Course])
 
 
 @app.route('/students/<rollno>/courses/course_code/syllabus')
@@ -84,14 +86,6 @@ def Syllabus(rollno):
 @app.route('/students/<rollno>')
 def Rollno():
     return "rollno"
-
-
-@app.route('/signup', methods=['GET', 'POST'])
-def Signup():
-    if request.method == 'POST':
-        return "post method used"
-
-    return "Signup here"
 
 
 @app.route('/students/<rollno>/edit', methods=['GET', 'POST'])

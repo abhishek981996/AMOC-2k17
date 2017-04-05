@@ -8,7 +8,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
+from flask.ext.httpauth import HTTPBasicAuth
 
+
+auth = HTTPBasicAuth()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Blog.db'
 
@@ -17,6 +20,16 @@ migrate = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+user = ['abhishek',
+        'vaibhav']
+
+
+@auth.verify_password
+def verify_password(username, password):
+    if username == user[0] and password == user[1]:
+        return True
+    else:
+        return False
 
 
 @app.route('/')
